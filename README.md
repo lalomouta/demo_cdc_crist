@@ -1,6 +1,5 @@
-# Change Data Capture desde MySQL a Postgres usando Debezium
+# Demo Change Data Capture (CDC) desde MySQL a Postgres usando Debezium
 
-A docker compose is used to set up the infrastructure needed for the demo:
 Docker Compose es utilizado para configurar la infrastructura necesaria para la demo
 
 - Postgres
@@ -8,12 +7,12 @@ Docker Compose es utilizado para configurar la infrastructura necesaria para la 
 - Kafka
   - Zookeeper.
   - Kafka Broker.
-  - Kafka Connect with [Debezium](https://debezium.io/), [Para Postgres utilizamos el conector JDBC](https://github.com/confluentinc/kafka-connect-jdbc) Connectors.
+  - Kafka Connect con [Debezium](https://debezium.io/), [Para Postgres utilizamos el conector JDBC](https://github.com/confluentinc/kafka-connect-jdbc) Connectors.
   - kafdrop For UI to Kafka topics.
 
 ### ![Diagrama de la solucion](images/Arquitectura_CDC_Demo.png)
 
-## Usage
+## Ejecucion de la demo
 
 Se ha creado un script para crear en el contenedor la tabla cris2.cr_th_activo en MySQL. Se encuentra en mysql/cris2.sql
 
@@ -117,7 +116,7 @@ mysql> describe cr_th_activo;
 mysql>exit;
 ```
 
-### Verify the content in Postgres DB instance
+### Verificamos el contenido en la instancia de Postgres DB
 
 ```shell
 docker exec -it demo_cdc_crist_postgres_1 bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB'
