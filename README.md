@@ -1,13 +1,13 @@
 # Demo Change Data Capture (CDC) desde MySQL a Postgres usando Debezium
 
-Docker Compose es utilizado para configurar la infrastructura necesaria para la demo
+Utilizamos Docker Compose para configurar la infrastructura necesaria para la demo
 
 - Postgres
 - Mysql
 - Kafka
   - Zookeeper.
   - Kafka Broker.
-  - Kafka Connect con [Debezium](https://debezium.io/), [Para Postgres utilizamos el conector JDBC](https://github.com/confluentinc/kafka-connect-jdbc) Connectors.
+  - Kafka Connect con [Debezium](https://debezium.io/), [para Postgres utilizamos el conector JDBC](https://github.com/confluentinc/kafka-connect-jdbc).
   - kafdrop For UI to Kafka topics.
 
 ### ![Diagrama de la solucion](images/Arquitectura_CDC_Demo.png)
