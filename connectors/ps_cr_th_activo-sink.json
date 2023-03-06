@@ -9,8 +9,9 @@
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
     "transforms.unwrap.drop.tombstones": "false",
     "auto.create": "true",
-    "insert.mode": "insert",
-    "delete.enabled": "false",
-    "pk.mode": "none"
+    "insert.mode": "upsert",
+    "delete.enabled": "true",
+    "pk.fields": "O5625_ID_UNIT,O5625_ID_AREA,O5625_ID_CARTERA,O5625_FEC_DATO",
+    "pk.mode": "record_key"
   }
 }

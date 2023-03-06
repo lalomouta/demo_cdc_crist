@@ -10,7 +10,7 @@ A docker compose is used to set up the infrastructure needed for the demo:
   - Kafka Connect with [Debezium](https://debezium.io/), [Postgres and Elastic Search](https://github.com/confluentinc/kafka-connect-elasticsearch) Connectors.
   - kafdrop For UI to Kafka topics.
 
-### ![Solution Overview](images/1.png)
+### ![Solution Overview](images/Arquitectura_CDC_Demo.png)
 
 ## Usage
 

@@ -1,30 +1,55 @@
 GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'replicator' IDENTIFIED BY 'replpass';
 GRANT SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT  ON *.* TO 'debezium' IDENTIFIED BY 'mysql';
 
-# Create the database that we'll use to populate data and watch the effect in the binlog
-CREATE DATABASE cris2;
+create database cris2;
 GRANT ALL PRIVILEGES ON cris2.* TO 'mysql'@'%';
 
 # Switch to this database
 USE cris2;
 
-# Create and populate our products using a single insert with many rows
-CREATE TABLE cr_th_activo (
-  name VARCHAR(255) NOT NULL,
-  email varchar(255) not null,
-  mobile_number VARCHAR(512),
-  created_at timestamp default CURRENT_TIMESTAMP()
+create table cris2.cr_th_activo (
+    O5625_ID_UNIT CHAR(10)
+, O5625_ID_AREA CHAR(10)
+, O5625_ID_CARTERA CHAR(10)
+, O5625_FEC_DATO DATE
+, O5625_ID_ISS_CTRY CHAR(10)
+, O5625_ID_COUNT_PT CHAR(10)
+, O5625_ID_UNDERLY CHAR(10)
+, O5625_ID_ASSETCL CHAR(10)
+, O5625_ID_BAL_SH_IT CHAR(20)
+, O5625_ID_CURRENCY CHAR(10)
+, O5625_ID_SEGMENT CHAR(10)
+, O5625_ID_PRODUCT CHAR(10)
+, O5625_ID_SCENARIO CHAR(20)
+, O5625_ID_FACT_TYPE CHAR(20)
+, O5625_ID_SOV_RSK CHAR(10)
+, O5625_ID_TYPE_FVA CHAR(10)
+, O5625_ID_CURVE CHAR(20)
+, O5625_ID_TB_ORIG CHAR(10)
+, O5625_ID_TIME_BUCK CHAR(10)
+, O5625_ID_AST_LIAB CHAR(10)
+, O5625_ID_FX_POS CHAR(10)
+, O5625_ID_METRICA INTEGER
+, O5625_ID_TIP_CALC INTEGER
+, O5625_COMENTARIO VARCHAR(1000)
+, O5625_ESTADO_MET VARCHAR(20)
+, O5625_ID_USUARIO CHAR(30)
+, O5625_FEC_CARGA TIMESTAMP
+, O5625_VAL_MET_EUR INTEGER
+, O5625_VAL_MET_ORIG INTEGER
+, O5625_IND_AJUSTE CHAR(1)
+, O5625_IND_TIP_CARG INTEGER
+, O5625_ID_DIV_CARGA CHAR(3)
+, O5625_IND_EST_REV INTEGER
+, O5625_ID_CAUSA_AJ INTEGER
+, O5625_ORIGEN_MET VARCHAR(20)
+, O5625_ID_T_ISSUER CHAR(10)
+, O5625_ID_INTRAGR CHAR(10)
+, O5625_FEC_REAL_DATO DATE
+, O5625_IND_COPIADO INTEGER
+, O5625_VAL_MET_ORIG_OF INTEGER
+, O5625_VAL_MET_EUR_OF INTEGER
+, O5625_ID_DIV_CARGA_OF CHAR(3) 
+, PRIMARY KEY(O5625_ID_UNIT,O5625_ID_AREA,O5625_ID_CARTERA,O5625_FEC_DATO)
 );
-
-INSERT INTO cr_th_activo
-VALUES ("John Smith","john.smith@email.com","9876543211", default),
-       ("Tom Cruise","tom.cruise@gmail.com","9876543212", default),
-       ("Jack Peterson","jack.peterson@gmail.com","9876543213", default),
-       ("John Wick","john.wick@gmail.com","9876543214", default),
-       ("Jason Bourne","jason.bourne@gmail.com","9876543215", default),
-       ("Jack Reacher","jack.reacher@gmail.com","9876543216", default),
-       ("James Bond","james.bond@gmail.com","9876543217", default),
-       ("Punisher","punisher@gmail.com","9876543219", default);
-       ("Terminator","terminator@gmail.com","9876543218", default),
-
 
