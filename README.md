@@ -146,13 +146,14 @@ inventoryDB=# \dt
  public | cr_th_activo | table | postgres
 (1 row)
 
-inventoryDB=# "select * from cr_th_activo"
+inventoryDB=# select * from cr_th_activo;
 
  O5625_COMENTARIO | O5625_ID_DIV_CARGA |   O5625_FEC_CARGA    | O5625_ID_UNIT | O5625_ID_CARTERA | O5625_ID_TYPE_FVA | O5625_IND_COPIADO | O5625_VAL_MET_ORIG_OF | O5625_ID_PRODUCT |  O5625_ID_FACT_TYPE  | O5625_IND_EST_REV | O5625_ID_ASSETCL | O5625_ID_SOV_RSK | O5625_FEC_REAL_DATO | O5625_ID_TIME_BUCK | O5625_ID_METRICA | O5625_ID_FX_POS | O5625_ID_DIV_CARGA_OF |  O5625_ID_BAL_SH_IT  |    O5625_ID_CURVE    | O5625_ID_AST_LIAB | O5625_VAL_MET_EUR_OF | O5625_ID_ISS_CTRY | O5625_ID_T_ISSUER | O5625_IND_TIP_CARG | O5625_FEC_DATO | O5625_IND_AJUSTE |   O5625_ORIGEN_MET   | O5625_ID_UNDERLY | O5625_VAL_MET_ORIG |  O5625_ID_SCENARIO   | O5625_ID_SEGMENT | O5625_ID_COUNT_PT | O5625_ID_USUARIO | O5625_ID_AREA | O5625_ID_TB_ORIG | O5625_ESTADO_MET | O5625_ID_CAUSA_AJ | O5625_ID_INTRAGR | O5625_ID_TIP_CALC | O5625_ID_CURRENCY | O5625_VAL_MET_EUR 
 ------------------+--------------------+----------------------+---------------+------------------+-------------------+-------------------+-----------------------+------------------+----------------------+-------------------+------------------+------------------+---------------------+--------------------+------------------+-----------------+-----------------------+----------------------+----------------------+-------------------+----------------------+-------------------+-------------------+--------------------+----------------+------------------+----------------------+------------------+--------------------+----------------------+------------------+-------------------+------------------+---------------+------------------+------------------+-------------------+------------------+-------------------+-------------------+-------------------
  77a758c98b       | 06f                | 2023-03-06T00:00:00Z | 0ee222f9e9    | dcefaaead4       | f0a115d49c        |                 1 |                   140 | 09985be6b1       | 3ce3a19b616b0886361e |               100 | 095369d83a       | 37dab49727       |               19422 | 5f8a94d5cb         |              136 | 7bef1e17b8      | ab8                   | f79469423805a3d80dbb | 5c9b05ceaedde823469d | bcabbe5720        |                  434 | 3a30e50603        | 4c1d6556b9        |                  3 |          19422 | 2                | 58ea1e3fb8b45f0e2d21 | 4db2fe7df6       |                288 | 1006e4576d6856c211eb | b60ebf6b7b       | f0489537e4        | 2759889a2f       | eb4ddee5ac    | c64a9830cc       | 65e1a91436       |               184 | 91a882f66b       |               979 | 3c5959ac9c        |               325
 (1 row)
 
+inventoryDB=# \q
 ```
 ### Ahora vamos a insertar 1000 registros en la tabla mysql. Para ello ejecutamos el script:
 
@@ -160,7 +161,7 @@ inventoryDB=# "select * from cr_th_activo"
 docker exec -it demo_cdc_crist_mysql_1 bash -c 'bash /app/create_insert_commands.sh'
 docker exec -it demo_cdc_crist_mysql_1 bash -c 'mysql -u mysql -p'
 ```
-Nota: Nos solicitará la password del usuario mysql, que es 'mysql'
+Nota: Se nos solicitará la password del usuario mysql, que es 'mysql'
 
 ```sql
 mysql> source /app/INSERT_1000_registros.sql
