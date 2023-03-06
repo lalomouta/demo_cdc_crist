@@ -1,51 +1,52 @@
-# Change Data Capture from POSTGRES to Elastic Search Using Debezium
+# Change Data Capture desde MySQL a Postgres usando Debezium
 
 A docker compose is used to set up the infrastructure needed for the demo:
+Docker Compose es utilizado para configurar la infrastructura necesaria para la demo
 
 - Postgres
 - Mysql
 - Kafka
   - Zookeeper.
   - Kafka Broker.
-  - Kafka Connect with [Debezium](https://debezium.io/), [Postgres and Elastic Search](https://github.com/confluentinc/kafka-connect-elasticsearch) Connectors.
+  - Kafka Connect with [Debezium](https://debezium.io/), [Para Postgres utilizamos el conector JDBC](https://github.com/confluentinc/kafka-connect-jdbc) Connectors.
   - kafdrop For UI to Kafka topics.
 
-### ![Solution Overview](images/Arquitectura_CDC_Demo.png)
+### ![Diagrama de la solucion](images/Arquitectura_CDC_Demo.png)
 
 ## Usage
 
-I have created script for loading some data in to mysql. You can find under folder mysql/user_data.sql
+Se ha creado un script para crear en el contenedor la tabla cris2.cr_th_activo en MySQL. Se encuentra en mysql/cris2.sql
+
+Ejecutamos docker-compose para levantar la infrastructura arriba definida:
 
 ```shell
-export DEBEZIUM_VERSION=1.4 (or latest)
+export DEBEZIUM_VERSION=2.1
 
-# Build the docker file using docker compose. It will take a while for first time.
+# Construye los contenedores desde el fichero docker usando docker compose. Le lleva un poco de tiempo la primera vez que se ejecuta
 docker-compose up --build
 
 # Configure the connectors. For simplicity I created shell script.
-As we are using geo spatial tables. This table is only sinked with Elastic Search alone.
-For Postgres we need Postgis extension
+# Configuramos los 2 conectores. Por simplicidad, se crea un script para desplegarlos
+Run the following script to add the 2 connectors (one for the source MySQL database and another for the sink Postgres database)
+Ejecuta el siguiente script para añadir los 2 conectores (uno para la fuente de datos en MySQL y otro para el destino de datos en Postgres)
 ./init.sh
 ```
 
-Few tables were loaded in to Mysql `users` and `geom` (Geo Spatial table)
+Comprobamos que la tabla `cr_th_activo` ha sido creada en MySQL
 
 ### Check the data in Mysql
 
 ```shell
-docker-compose exec mysql bash -c 'mysql -u $MYSQL_USER  -p$MYSQL_PASSWORD user_data'
+docker exec -it demo_cdc_crist_mysql_1 bash -c 'mysql -u mysql -p'
 ```
-
+Nos solicitará la password del usuario mysql, que es 'mysql'
 ```sql
-mysql: [Warning] Using a password on the command line interface can be insecure.
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
+Enter password: 
 Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 2
-Server version: 5.7.35-log MySQL Community Server (GPL)
+Your MySQL connection id is 28
+Server version: 5.7.41-log MySQL Community Server (GPL)
 
-Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
 Oracle is a registered trademark of Oracle Corporation and/or its
 affiliates. Other names may be trademarks of their respective
@@ -53,295 +54,148 @@ owners.
 
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-mysql> select * from users;
-+----+---------------+-------------------------+---------------+---------------------+
-| id | name          | email                   | mobile_number | created_at          |
-+----+---------------+-------------------------+---------------+---------------------+
-|  1 | John Smith    | john.smith@email.com    | 9876543211    | 2021-08-14 05:49:48 |
-|  2 | Tom Cruise    | tom.cruise@gmail.com    | 9876543212    | 2021-08-14 05:49:48 |
-|  3 | Jack Peterson | jack.peterson@gmail.com | 9876543213    | 2021-08-14 05:49:48 |
-|  4 | John Wick     | john.wick@gmail.com     | 9876543214    | 2021-08-14 05:49:48 |
-|  5 | Jason Bourne  | jason.bourne@gmail.com  | 9876543215    | 2021-08-14 05:49:48 |
-|  6 | Jack Reacher  | jack.reacher@gmail.com  | 9876543216    | 2021-08-14 05:49:48 |
-|  7 | James Bond    | james.bond@gmail.com    | 9876543217    | 2021-08-14 05:49:48 |
-|  8 | Terminator    | terminator@gmail.com    | 9876543218    | 2021-08-14 05:49:48 |
-|  9 | Punisher      | punisher@gmail.com      | 9876543219    | 2021-08-14 05:49:48 |
-+----+---------------+-------------------------+---------------+---------------------+
-9 rows in set (0.00 sec)
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| cris2              |
++--------------------+
+2 rows in set (0.00 sec)
 
-mysql> select * from geom;
-+----+---------------------------+------+
-| id | g                         | h    |
-+----+---------------------------+------+
-|  1 |        ���Y@P6�
-3� | NULL |
-|  2 |        ����X@P6�
-9� | NULL |
-|  3 |        �):�ˏH@P6�
-=� | NULL |
-+----+---------------------------+------+
-3 rows in set (0.00 sec)
+mysql> use cris2;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++-----------------+
+| Tables_in_cris2 |
++-----------------+
+| cr_th_activo    |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> describe cr_th_activo;
++-----------------------+---------------+------+-----+-------------------+-----------------------------+
+| Field                 | Type          | Null | Key | Default           | Extra                       |
++-----------------------+---------------+------+-----+-------------------+-----------------------------+
+| O5625_ID_UNIT         | char(10)      | NO   | PRI | NULL              |                             |
+| O5625_ID_AREA         | char(10)      | NO   | PRI | NULL              |                             |
+| O5625_ID_CARTERA      | char(10)      | NO   | PRI | NULL              |                             |
+| O5625_FEC_DATO        | date          | NO   | PRI | NULL              |                             |
+| O5625_ID_ISS_CTRY     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_COUNT_PT     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_UNDERLY      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_ASSETCL      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_BAL_SH_IT    | char(20)      | YES  |     | NULL              |                             |
+| O5625_ID_CURRENCY     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_SEGMENT      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_PRODUCT      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_SCENARIO     | char(20)      | YES  |     | NULL              |                             |
+| O5625_ID_FACT_TYPE    | char(20)      | YES  |     | NULL              |                             |
+| O5625_ID_SOV_RSK      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_TYPE_FVA     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_CURVE        | char(20)      | YES  |     | NULL              |                             |
+| O5625_ID_TB_ORIG      | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_TIME_BUCK    | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_AST_LIAB     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_FX_POS       | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_METRICA      | int(11)       | YES  |     | NULL              |                             |
+| O5625_ID_TIP_CALC     | int(11)       | YES  |     | NULL              |                             |
+| O5625_COMENTARIO      | varchar(1000) | YES  |     | NULL              |                             |
+| O5625_ESTADO_MET      | varchar(20)   | YES  |     | NULL              |                             |
+| O5625_ID_USUARIO      | char(30)      | YES  |     | NULL              |                             |
+| O5625_FEC_CARGA       | timestamp     | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
+| O5625_VAL_MET_EUR     | int(11)       | YES  |     | NULL              |                             |
+| O5625_VAL_MET_ORIG    | int(11)       | YES  |     | NULL              |                             |
+| O5625_IND_AJUSTE      | char(1)       | YES  |     | NULL              |                             |
+| O5625_IND_TIP_CARG    | int(11)       | YES  |     | NULL              |                             |
+| O5625_ID_DIV_CARGA    | char(3)       | YES  |     | NULL              |                             |
+| O5625_IND_EST_REV     | int(11)       | YES  |     | NULL              |                             |
+| O5625_ID_CAUSA_AJ     | int(11)       | YES  |     | NULL              |                             |
+| O5625_ORIGEN_MET      | varchar(20)   | YES  |     | NULL              |                             |
+| O5625_ID_T_ISSUER     | char(10)      | YES  |     | NULL              |                             |
+| O5625_ID_INTRAGR      | char(10)      | YES  |     | NULL              |                             |
+| O5625_FEC_REAL_DATO   | date          | YES  |     | NULL              |                             |
+| O5625_IND_COPIADO     | int(11)       | YES  |     | NULL              |                             |
+| O5625_VAL_MET_ORIG_OF | int(11)       | YES  |     | NULL              |                             |
+| O5625_VAL_MET_EUR_OF  | int(11)       | YES  |     | NULL              |                             |
+| O5625_ID_DIV_CARGA_OF | char(3)       | YES  |     | NULL              |                             |
++-----------------------+---------------+------+-----+-------------------+-----------------------------+
+42 rows in set (0.00 sec)
+
+mysql> 
+
+
+
 ```
 
 ### Verify the content in Postgres DB instance
 
 ```shell
-docker-compose exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select * from users"'
+docker exec -it demo_cdc_crist_postgres_1 bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB'
 ```
 
 ```sql
-      name      |      created_at      | id | mobile_number |          email
----------------+----------------------+----+---------------+-------------------------
- John Smith    | 2021-08-14T05:49:48Z |  1 | 9876543211    | john.smith@email.com
- Tom Cruise    | 2021-08-14T05:49:48Z |  2 | 9876543212    | tom.cruise@gmail.com
- Jack Peterson | 2021-08-14T05:49:48Z |  3 | 9876543213    | jack.peterson@gmail.com
- John Wick     | 2021-08-14T05:49:48Z |  4 | 9876543214    | john.wick@gmail.com
- Jason Bourne  | 2021-08-14T05:49:48Z |  5 | 9876543215    | jason.bourne@gmail.com
- Jack Reacher  | 2021-08-14T05:49:48Z |  6 | 9876543216    | jack.reacher@gmail.com
- James Bond    | 2021-08-14T05:49:48Z |  7 | 9876543217    | james.bond@gmail.com
- Terminator    | 2021-08-14T05:49:48Z |  8 | 9876543218    | terminator@gmail.com
- Punisher      | 2021-08-14T05:49:48Z |  9 | 9876543219    | punisher@gmail.com
-(9 rows)
+psql -U $POSTGRES_USER $POSTGRES_DB'
+psql (9.6.22)
+Type "help" for help.
+
+inventoryDB=# \dt
+            List of relations
+ Schema |     Name     | Type  |  Owner   
+--------+--------------+-------+----------
+ public | cr_th_activo | table | postgres
+(1 row)
+
 ```
 
-### Verify Content In Elastic Search
+### Insertamos un registro en la tabla origen en MySQL
+
 
 ```shell
-curl http://localhost:9200/users/_search\?pretty
+docker exec -it demo_cdc_crist_mysql_1 bash -c 'bash /app/create_1_insert.sh'
+docker exec -it demo_cdc_crist_mysql_1 bash -c 'mysql -u mysql -p'
 ```
-
-```json
-{
-  "took": 10,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 9,
-      "relation": "eq"
-    },
-    "max_score": 1.0,
-    "hits": [
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "3",
-        "_score": 1.0,
-        "_source": {
-          "id": 3,
-          "name": "Jack Peterson",
-          "email": "jack.peterson@gmail.com",
-          "mobile_number": "9876543213",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "1",
-        "_score": 1.0,
-        "_source": {
-          "id": 1,
-          "name": "John Smith",
-          "email": "john.smith@email.com",
-          "mobile_number": "9876543211",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "2",
-        "_score": 1.0,
-        "_source": {
-          "id": 2,
-          "name": "Tom Cruise",
-          "email": "tom.cruise@gmail.com",
-          "mobile_number": "9876543212",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "9",
-        "_score": 1.0,
-        "_source": {
-          "id": 9,
-          "name": "Punisher",
-          "email": "punisher@gmail.com",
-          "mobile_number": "9876543219",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "4",
-        "_score": 1.0,
-        "_source": {
-          "id": 4,
-          "name": "John Wick",
-          "email": "john.wick@gmail.com",
-          "mobile_number": "9876543214",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "5",
-        "_score": 1.0,
-        "_source": {
-          "id": 5,
-          "name": "Jason Bourne",
-          "email": "jason.bourne@gmail.com",
-          "mobile_number": "9876543215",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "6",
-        "_score": 1.0,
-        "_source": {
-          "id": 6,
-          "name": "Jack Reacher",
-          "email": "jack.reacher@gmail.com",
-          "mobile_number": "9876543216",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "7",
-        "_score": 1.0,
-        "_source": {
-          "id": 7,
-          "name": "James Bond",
-          "email": "james.bond@gmail.com",
-          "mobile_number": "9876543217",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      },
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "8",
-        "_score": 1.0,
-        "_source": {
-          "id": 8,
-          "name": "Terminator",
-          "email": "terminator@gmail.com",
-          "mobile_number": "9876543218",
-          "created_at": "2021-08-14T05:49:48Z"
-        }
-      }
-    ]
-  }
-}
-```
-
-### Now Let us add user in users table
-
-```shell
-docker-compose exec mysql bash -c 'mysql -u $MYSQL_USER  -p$MYSQL_PASSWORD user_data'
-```
+Nota: Nos solicitará la password del usuario mysql, que es 'mysql'
 
 ```sql
-INSERT INTO users
-    -> VALUES (default,"Will Smiths","will.smiths@email.com","8876543211", default);
-Query OK, 1 row affected (0.04 sec)
+mysql> source /app/INSERT_1_registro.sql
+Query OK, 1 row affected (0.00 sec)
 ```
 
-Insertion of this record is successful.
+El registro se ha insertado correctamente
 
-### Now Let us verify in Postgres and Elastic Search
+### Vamos a verificar que la tabla existe en Postgres 
 
 #### Check Postgres
 
 ```shell
-docker-compose exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select * from users"'
+docker exec demo_cdc_crist_postgres_1 bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select * from cr_th_activo"'
+```
+ O5625_COMENTARIO | O5625_ID_DIV_CARGA |   O5625_FEC_CARGA    | O5625_ID_UNIT | O5625_ID_CARTERA | O5625_ID_TYPE_FVA | O5625_IND_COPIADO | O5625_VAL_MET_ORIG_OF | O5625_ID_PRODUCT |  O5625_ID_FACT_TYPE  | O5625_IND_EST_REV | O5625_ID_ASSETCL | O5625_ID_SOV_RSK | O5625_FEC_REAL_DATO | O5625_ID_TIME_BUCK | O5625_ID_METRICA | O5625_ID_FX_POS | O5625_ID_DIV_CARGA_OF |  O5625_ID_BAL_SH_IT  |    O5625_ID_CURVE    | O5625_ID_AST_LIAB | O5625_VAL_MET_EUR_OF | O5625_ID_ISS_CTRY | O5625_ID_T_ISSUER | O5625_IND_TIP_CARG | O5625_FEC_DATO | O5625_IND_AJUSTE |   O5625_ORIGEN_MET   | O5625_ID_UNDERLY | O5625_VAL_MET_ORIG |  O5625_ID_SCENARIO   | O5625_ID_SEGMENT | O5625_ID_COUNT_PT | O5625_ID_USUARIO | O5625_ID_AREA | O5625_ID_TB_ORIG | O5625_ESTADO_MET | O5625_ID_CAUSA_AJ | O5625_ID_INTRAGR | O5625_ID_TIP_CALC | O5625_ID_CURRENCY | O5625_VAL_MET_EUR 
+------------------+--------------------+----------------------+---------------+------------------+-------------------+-------------------+-----------------------+------------------+----------------------+-------------------+------------------+------------------+---------------------+--------------------+------------------+-----------------+-----------------------+----------------------+----------------------+-------------------+----------------------+-------------------+-------------------+--------------------+----------------+------------------+----------------------+------------------+--------------------+----------------------+------------------+-------------------+------------------+---------------+------------------+------------------+-------------------+------------------+-------------------+-------------------+-------------------
+ 77a758c98b       | 06f                | 2023-03-06T00:00:00Z | 0ee222f9e9    | dcefaaead4       | f0a115d49c        |                 1 |                   140 | 09985be6b1       | 3ce3a19b616b0886361e |               100 | 095369d83a       | 37dab49727       |               19422 | 5f8a94d5cb         |              136 | 7bef1e17b8      | ab8                   | f79469423805a3d80dbb | 5c9b05ceaedde823469d | bcabbe5720        |                  434 | 3a30e50603        | 4c1d6556b9        |                  3 |          19422 | 2                | 58ea1e3fb8b45f0e2d21 | 4db2fe7df6       |                288 | 1006e4576d6856c211eb | b60ebf6b7b       | f0489537e4        | 2759889a2f       | eb4ddee5ac    | c64a9830cc       | 65e1a91436       |               184 | 91a882f66b       |               979 | 3c5959ac9c        |               325
+(1 row)
+
+
 ```
 
-A new row by name Will Smiths is added.
 
-```sql
-     name      |      created_at      | id | mobile_number |          email
----------------+----------------------+----+---------------+-------------------------
- John Smith    | 2021-08-14T05:49:48Z |  1 | 9876543211    | john.smith@email.com
- Tom Cruise    | 2021-08-14T05:49:48Z |  2 | 9876543212    | tom.cruise@gmail.com
- Jack Peterson | 2021-08-14T05:49:48Z |  3 | 9876543213    | jack.peterson@gmail.com
- John Wick     | 2021-08-14T05:49:48Z |  4 | 9876543214    | john.wick@gmail.com
- Jason Bourne  | 2021-08-14T05:49:48Z |  5 | 9876543215    | jason.bourne@gmail.com
- Jack Reacher  | 2021-08-14T05:49:48Z |  6 | 9876543216    | jack.reacher@gmail.com
- James Bond    | 2021-08-14T05:49:48Z |  7 | 9876543217    | james.bond@gmail.com
- Terminator    | 2021-08-14T05:49:48Z |  8 | 9876543218    | terminator@gmail.com
- Punisher      | 2021-08-14T05:49:48Z |  9 | 9876543219    | punisher@gmail.com
- Will Smiths   | 2021-08-14T05:55:21Z | 10 | 8876543211    | will.smiths@email.com
-(10 rows)
-```
 
-#### Check Elastic Search for id 10
+### Ahora vamos a insertar 1000 registros en la tabla mysql. Para ello ejecutamos el script:
 
 ```shell
-curl -XGET "http://elastic:9200/users/_search" -H 'Content-Type: application/json' -d'{  "query": {    "bool": {      "must": [        {          "match": {            "id": 10          }        }      ]    }  }}'
+docker exec -it demo_cdc_crist_mysql_1 bash -c 'bash /app/create_insert_commands.sh'
+docker exec -it demo_cdc_crist_mysql_1 bash -c 'mysql -u mysql -p'
 ```
-
-```json
-{
-  "took": 0,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 1,
-      "relation": "eq"
-    },
-    "max_score": 1.0,
-    "hits": [
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "10",
-        "_score": 1.0,
-        "_source": {
-          "id": 10,
-          "name": "Will Smiths",
-          "email": "will.smiths@email.com",
-          "mobile_number": "8876543211",
-          "created_at": "2021-08-14T05:55:21Z"
-        }
-      }
-    ]
-  }
-}
-```
-
-### Now update the previous record and see if it's reflected or not in target system
-
-Let us update the previously created record.
-
-```shell
-docker-compose exec mysql bash -c 'mysql -u $MYSQL_USER -p$MYSQL_PASSWORD user_data'
-```
+Nota: Nos solicitará la password del usuario mysql, que es 'mysql'
 
 ```sql
-update users set name='Will Smith', email='will.smith@gmail.com' where id = 10;
-Query OK, 1 row affected (0.04 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
+mysql> source /app/INSERT_1000_registros.sql
+Query OK, 1 row affected (0.00 sec)
+mysql> exit;
 ```
 
 ### Now verify the same in Postgres and Elastic Search
@@ -349,113 +203,19 @@ Rows matched: 1  Changed: 1  Warnings: 0
 #### Verify in Postgres
 
 ```shell
-docker-compose exec postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB'
+docker exec demo_cdc_crist_postgres_1 bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB -c "select count(*) from cr_th_activo"'
 ```
 
 The record is modified.
 
 ```sql
-psql (9.6.22)
-Type "help" for help.
-
-inventoryDB=# select * from users where id = 10;
-    name    |      created_at      | id | mobile_number |        email
-------------+----------------------+----+---------------+----------------------
- Will Smith | 2021-08-14T05:55:21Z | 10 | 8876543211    | will.smith@gmail.com
+ count 
+-------
+  1000
 (1 row)
+
 ```
 
-Verify in Elastic Search too.
-
-```shell
-curl -XGET "http://elastic:9200/users/_search" -H 'Content-Type: application/json' -d'{  "query": {    "bool": {      "must": [        {          "match": {            "id": 10          }        }      ]    }  }}'
-```
-
-```json
-{
-  "took": 2,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 1,
-      "relation": "eq"
-    },
-    "max_score": 1.0,
-    "hits": [
-      {
-        "_index": "users",
-        "_type": "user",
-        "_id": "10",
-        "_score": 1.0,
-        "_source": {
-          "id": 10,
-          "name": "Will Smith",
-          "email": "will.smith@gmail.com",
-          "mobile_number": "8876543211",
-          "created_at": "2021-08-14T05:55:21Z"
-        }
-      }
-    ]
-  }
-}
-```
-
-### Now Let us delete the product and see whether it reflects or not in target system
-
-```shell
-docker-compose exec mysql bash -c 'mysql -u $MYSQL_USER  -p$MYSQL_PASSWORD user_data'
-```
-
-```sql
-delete from users where id = 10;
-Query OK, 1 row affected (0.03 sec)
-```
-
-### Query in Postgres and Elastic Search to verify
-
-#### In Postgres
-
-```sql
-inventoryDB=# select * from users where id = 10;
- name | created_at | id | mobile_number | email
-------+------------+----+---------------+-------
-(0 rows)
-```
-
-#### In Elastic Search
-
-```shell
-curl -XGET "http://elastic:9200/users/_search" -H 'Content-Type: application/json' -d'{  "query": {    "bool": {      "must": [        {          "match": {            "id": 10          }        }      ]    }  }}'
-```
-
-Record is deleted.
-
-```json
-{
-  "took": 406,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 0,
-      "relation": "eq"
-    },
-    "max_score": null,
-    "hits": []
-  }
-}
-```
 
 ### Stop the services
 
