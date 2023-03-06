@@ -1,2 +1,0 @@
-mysql: command not found
-To install mysql use: sudo swupd bundle-add mariadb
